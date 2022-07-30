@@ -5,11 +5,8 @@ public class UserDAO {
 
     //connection function
     public static Connection getConnection() throws SQLException{
-        Connection connect;
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            connect = DriverManager.getConnection("jdbc:mysql://localhost:3306/mglsi_news","java","java");
-
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }

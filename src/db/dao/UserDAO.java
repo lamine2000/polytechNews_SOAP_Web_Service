@@ -1,5 +1,8 @@
 package db.dao;
+import domain.*;
+
 import java.sql.*;
+import java.util.ArrayList;
 
 public class UserDAO {
 
@@ -15,16 +18,24 @@ public class UserDAO {
 
     //this function return admin's token basing on his id
     public String getToken(int id) throws SQLException{
-        PreparedStatement sql = getConnection().prepareStatement("Select tokenValue from user WHERE  id=?");
+        PreparedStatement sql = getConnection().prepareStatement("Select TokenValue from Token WHERE  IdUser=?");
         sql.setInt(1,id);
         ResultSet token = sql.executeQuery();
         token.next();
-        return token.getString("tokenValue");
+        return token.getString("TokenValue");
     }
 
+    //this function return admin's token basing on his id
+    public int getId(String token) throws SQLException{
+        PreparedStatement sql = getConnection().prepareStatement("Select IdUser from Token WHERE  TokenValue=?");
+        sql.setString(1,token);
+        ResultSet id = sql.executeQuery();
+        id.next();
+        return id.getInt("IdUser");
+    }
     //This function return login and password's user
     public String getUserPassword(String login) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("Select password from user WHERE  login=?");
+        PreparedStatement sql = getConnection().prepareStatement("Select Password from Users WHERE  Login=?");
         sql.setString(1,login);
         ResultSet infos = sql.executeQuery();
         infos.next();
@@ -32,24 +43,54 @@ public class UserDAO {
     }
 
     //this function retrieves the list of users
-    public ResultSet getUsers() throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("Select * from user");
+    public ArrayList<User> getUsers() throws SQLException {
+        PreparedStatement sql = getConnection().prepareStatement("Select * from Users");
         ResultSet userList = sql.executeQuery();
-        return userList;
+
+        ArrayList<User> users = new ArrayList<>();
+        Administrator admin = new Administrator();
+        SimpleUser simpleUser = new SimpleUser();
+        Editor editor = new Editor();
+
+        while (userList.next()) {
+            String login = userList.getString("login");
+            String pwd = userList.getString("password");
+            String type = userList.getString("type");
+            switch (type) {
+                case "administrateur":
+                    admin.setLogin(login);
+                    admin.setPassword(pwd);
+                    users.add(admin);
+                    break;
+
+                case "editeur":
+                    editor.setLogin(login);
+                    editor.setPassword(pwd);
+                    users.add(editor);
+                    break;
+
+                case "utilisateur simple":
+                    simpleUser.setLogin(login);
+                    simpleUser.setPassword(pwd);
+                    users.add(simpleUser);
+                    break;
+            }
+        }
+        return users;
     }
 
     //this function add user in the database
     public void addUser(String login, String password, String type) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("INSERT INTO user(login,password,type) VALUES (?,?,?)");
+        PreparedStatement sql = getConnection().prepareStatement("INSERT INTO Users(Login,Password,Type) VALUES (?,?,?)");
         sql.setString(1,login);
         sql.setString(2,password);
         sql.setString(3,type);
         sql.executeUpdate();
     }
 
-    //update function depending on user's login
+    //update function depending on user's id
     public void updateUser(String login, String password, String type,int id) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("UPDATE user SET login=?, password=?, type=? WHERE id=? ");
+        PreparedStatement sql = getConnection().prepareStatement("UPDATE Users SET Login=?, Password=?, Type=? WHERE Id=? ");
         sql.setString(1,login);
         sql.setString(2,password);
         sql.setString(3,type);
@@ -59,7 +100,7 @@ public class UserDAO {
 
     //delete function depending on user's login
     public void deleteUser(int id) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("DELETE FROM user WHERE id=?");
+        PreparedStatement sql = getConnection().prepareStatement("DELETE FROM Users WHERE Id=?");
         sql.setInt(1,id);
         sql.executeUpdate();
     }

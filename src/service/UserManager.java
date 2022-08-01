@@ -17,30 +17,30 @@ public class UserManager {
     static UserDAO userDao = new UserDAO();
     static Verification verification = new Verification();
 
-    @WebMethod(operationName = "authentication")
-    public String authenticateUser(@WebParam(name ="userParameters") User user) throws SQLException
+    @WebMethod(operationName = "authenticate")
+    public Boolean authenticateUser(@WebParam(name ="user") User user) throws SQLException
     {
+        String hashPwd = DigestUtils.sha256Hex(user.getPassword());
         String userPwd = userDao.getUserPassword(user.getLogin());
-        if (userPwd.equals(user.getPassword()))
-            return "Succesfully authenticate";
+        user.setPassword(hashPwd);
 
-        return " Authentication failed";
+        return userPwd.equals(user.getPassword());
     }
 
     @WebMethod(operationName = "addUser")
-    public String addUser(
+    public Boolean addUser(
                            @WebParam(name = "tokenAdmin") String token,
-                           @WebParam(name = "userParameters") User user,
+                           @WebParam(name = "userToAdd") User user,
                            @WebParam(name = "typeUser") String type
                         ) throws SQLException
     {
-        if (verification.verifyToken(token)) {
+        if (Verification.verifyToken(token)) {
             String hashPwd = DigestUtils.sha256Hex(user.getPassword());
-            userDao.addUser(user.getLogin(), hashPwd, type);
-        } else {
-            return " You haven't permission. Please generate token.";
+            user.setPassword(hashPwd);
+            userDao.addUser(user, type);
+            return true;
         }
-        return " Successfully added";
+        return false;
     }
 
     @WebMethod(operationName = "listUsers")
@@ -48,39 +48,42 @@ public class UserManager {
                                        @WebParam(name = "tokenAdmin") String token
                                     ) throws SQLException
     {
-        if (!verification.verifyToken(token))
+        if (!Verification.verifyToken(token)) {
             System.out.println(" You haven't permission. Please generate token.");
-
+            return null;
+        }
         return userDao.getUsers();
     }
 
     @WebMethod(operationName = "updateUser")
-    public String updateUser(
+    public Boolean updateUser(
                                @WebParam(name = "tokenAdmin") String token,
                                @WebParam(name = "userParameters") User user,
                                @WebParam(name = "typeUser") String type,
                                @WebParam(name = "idUser") int idUser
                             ) throws SQLException
     {
-        if (verification.verifyToken(token)) {
-          userDao.updateUser(user.getLogin(),user.getPassword(),type,idUser);
-        } else {
-            return " You haven't permission. Please generate token.";
+        if (Verification.verifyToken(token)) {
+            String hashPwd = DigestUtils.sha256Hex(user.getPassword());
+            user.setPassword(hashPwd);
+            userDao.updateUser(user, type, idUser);
+            return true;
         }
-        return "Successfully modified";
+        return false;
     }
 
     @WebMethod(operationName = "deleteUser")
-    public String deleteUser(
+    public Boolean deleteUser(
                               @WebParam(name = "tokenAdmin") String token,
-                              @WebParam(name = "idUser")int idUser
+                              @WebParam(name = "idUser") int idUser
                             ) throws SQLException
     {
-        if (verification.verifyToken(token)) {
+        if (Verification.verifyToken(token)) {
             userDao.deleteUser(idUser);
-        } else {
-            return " You haven't permission. Please generate token.";
+            return true;
         }
-        return "Successfully deleted";
+
+        return false;
+
     }
 }

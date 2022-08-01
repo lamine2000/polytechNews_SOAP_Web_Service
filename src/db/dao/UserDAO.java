@@ -3,6 +3,7 @@ import domain.*;
 
 import java.sql.*;
 import java.util.ArrayList;
+import domain.UserTypesEnum;
 
 public class UserDAO {
 
@@ -56,43 +57,42 @@ public class UserDAO {
             String login = userList.getString("login");
             String pwd = userList.getString("password");
             String type = userList.getString("type");
-            switch (type) {
-                case "administrateur":
+            switch (UserTypesEnum.valueOf(type)) {
+                case ADMINISTRATOR:
                     admin.setLogin(login);
                     admin.setPassword(pwd);
                     users.add(admin);
                     break;
 
-                case "editeur":
+                case EDITOR:
                     editor.setLogin(login);
                     editor.setPassword(pwd);
                     users.add(editor);
                     break;
 
-                case "utilisateur simple":
+                case SIMPLE_USER:
                     simpleUser.setLogin(login);
                     simpleUser.setPassword(pwd);
                     users.add(simpleUser);
-                    break;
             }
         }
         return users;
     }
 
     //this function add user in the database
-    public void addUser(String login, String password, String type) throws SQLException {
+    public void addUser(User newUser, String type) throws SQLException {
         PreparedStatement sql = getConnection().prepareStatement("INSERT INTO Users(Login,Password,Type) VALUES (?,?,?)");
-        sql.setString(1,login);
-        sql.setString(2,password);
+        sql.setString(1,newUser.getLogin());
+        sql.setString(2,newUser.getPassword());
         sql.setString(3,type);
         sql.executeUpdate();
     }
 
     //update function depending on user's id
-    public void updateUser(String login, String password, String type,int id) throws SQLException {
+    public void updateUser(User user, String type, int id) throws SQLException {
         PreparedStatement sql = getConnection().prepareStatement("UPDATE Users SET Login=?, Password=?, Type=? WHERE Id=? ");
-        sql.setString(1,login);
-        sql.setString(2,password);
+        sql.setString(1,user.getLogin());
+        sql.setString(2,user.getPassword());
         sql.setString(3,type);
         sql.setInt(4,id);
         sql.executeUpdate();

@@ -1,7 +1,6 @@
 package service;
 
 import db.dao.UserDAO;
-import db.dao.Verification;
 import domain.User;
 import org.apache.commons.codec.digest.DigestUtils;
 import java.sql.SQLException;
@@ -14,14 +13,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 @WebService(name = "userManager")
 @XmlRootElement(name = "userManager")
 public class UserManager {
-    static UserDAO userDao = new UserDAO();
-    static Verification verification = new Verification();
-
+    static UserDAO dao = new UserDAO();
     @WebMethod(operationName = "authenticate")
     public Boolean authenticateUser(@WebParam(name ="user") User user) throws SQLException
     {
         String hashPwd = DigestUtils.sha256Hex(user.getPassword());
-        String userPwd = userDao.getUserPassword(user.getLogin());
+        String userPwd = dao.getUserPassword(user.getLogin());
         user.setPassword(hashPwd);
 
         return userPwd.equals(user.getPassword());
@@ -34,10 +31,10 @@ public class UserManager {
                            @WebParam(name = "typeUser") String type
                         ) throws SQLException
     {
-        if (Verification.verifyToken(token)) {
+        if (dao.verifyToken(token)) {
             String hashPwd = DigestUtils.sha256Hex(user.getPassword());
             user.setPassword(hashPwd);
-            userDao.addUser(user, type);
+            dao.addUser(user, type);
             return true;
         }
         return false;
@@ -48,11 +45,11 @@ public class UserManager {
                                        @WebParam(name = "tokenAdmin") String token
                                     ) throws SQLException
     {
-        if (!Verification.verifyToken(token)) {
+        if (!dao.verifyToken(token)) {
             System.out.println(" You haven't permission. Please generate token.");
             return null;
         }
-        return userDao.getUsers();
+        return dao.getUsers();
     }
 
     @WebMethod(operationName = "updateUser")
@@ -63,10 +60,10 @@ public class UserManager {
                                @WebParam(name = "idUser") int idUser
                             ) throws SQLException
     {
-        if (Verification.verifyToken(token)) {
+        if (dao.verifyToken(token)) {
             String hashPwd = DigestUtils.sha256Hex(user.getPassword());
             user.setPassword(hashPwd);
-            userDao.updateUser(user, type, idUser);
+            dao.updateUser(user, type, idUser);
             return true;
         }
         return false;
@@ -78,12 +75,11 @@ public class UserManager {
                               @WebParam(name = "idUser") int idUser
                             ) throws SQLException
     {
-        if (Verification.verifyToken(token)) {
-            userDao.deleteUser(idUser);
+        if (dao.verifyToken(token)) {
+            dao.deleteUser(idUser);
             return true;
         }
-
         return false;
-
     }
+
 }

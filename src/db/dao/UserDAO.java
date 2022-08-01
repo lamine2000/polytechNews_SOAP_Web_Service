@@ -8,9 +8,9 @@ import domain.UserTypesEnum;
 public class UserDAO {
 
     //connection function
-    public static Connection getConnection() throws SQLException{
+    private static Connection getConnection() throws SQLException{
         try {
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -22,8 +22,9 @@ public class UserDAO {
         PreparedStatement sql = getConnection().prepareStatement("Select TokenValue from Token WHERE  IdUser=?");
         sql.setInt(1,id);
         ResultSet token = sql.executeQuery();
-        token.next();
-        return token.getString("TokenValue");
+        if(token.next())
+            return token.getString("TokenValue");
+        return "";
     }
 
     //this function return admin's token basing on his id
@@ -31,21 +32,23 @@ public class UserDAO {
         PreparedStatement sql = getConnection().prepareStatement("Select IdUser from Token WHERE  TokenValue=?");
         sql.setString(1,token);
         ResultSet id = sql.executeQuery();
-        id.next();
-        return id.getInt("IdUser");
+        if(id.next())
+            return id.getInt("IdUser");
+        return -1;
     }
     //This function return login and password's user
     public String getUserPassword(String login) throws SQLException {
         PreparedStatement sql = getConnection().prepareStatement("Select Password from Users WHERE  Login=?");
         sql.setString(1,login);
         ResultSet infos = sql.executeQuery();
-        infos.next();
-        return infos.getString("password");
+        if(infos.next())
+            return infos.getString("password");
+        return "";
     }
 
     //this function retrieves the list of users
     public ArrayList<User> getUsers() throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("Select * from Users");
+        PreparedStatement sql = getConnection().prepareStatement("Select * from User");
         ResultSet userList = sql.executeQuery();
 
         ArrayList<User> users = new ArrayList<>();
@@ -81,7 +84,7 @@ public class UserDAO {
 
     //this function add user in the database
     public void addUser(User newUser, String type) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("INSERT INTO Users(Login,Password,Type) VALUES (?,?,?)");
+        PreparedStatement sql = getConnection().prepareStatement("INSERT INTO User(Login,Password,Type) VALUES (?,?,?)");
         sql.setString(1,newUser.getLogin());
         sql.setString(2,newUser.getPassword());
         sql.setString(3,type);
@@ -90,7 +93,7 @@ public class UserDAO {
 
     //update function depending on user's id
     public void updateUser(User user, String type, int id) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("UPDATE Users SET Login=?, Password=?, Type=? WHERE Id=? ");
+        PreparedStatement sql = getConnection().prepareStatement("UPDATE User SET Login=?, Password=?, Type=? WHERE Id=? ");
         sql.setString(1,user.getLogin());
         sql.setString(2,user.getPassword());
         sql.setString(3,type);
@@ -100,9 +103,16 @@ public class UserDAO {
 
     //delete function depending on user's login
     public void deleteUser(int id) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("DELETE FROM Users WHERE Id=?");
+        PreparedStatement sql = getConnection().prepareStatement("DELETE FROM User WHERE Id=?");
         sql.setInt(1,id);
         sql.executeUpdate();
+    }
+
+    public Boolean verifyToken(String token) throws SQLException {
+        PreparedStatement sql = getConnection().prepareStatement("SELECT count(*) as nbToken FROM Token");
+        ResultSet result = sql.executeQuery();
+
+        return Integer.parseInt(result.getString("TokenValue")) > 0;
     }
 
 }

@@ -20,7 +20,7 @@ public class UserDAO {
     //this function return admin's token basing on his id
     public String getToken(int id) throws SQLException{
         PreparedStatement sql = getConnection().prepareStatement("Select TokenValue from Token WHERE  IdUser=?");
-        sql.setInt(1,id);
+        sql.setInt(1, id);
         ResultSet token = sql.executeQuery();
         sql.close();
 
@@ -32,7 +32,7 @@ public class UserDAO {
     //this function return admin's token basing on his id
     public int getId(String token) throws SQLException{
         PreparedStatement sql = getConnection().prepareStatement("Select IdUser from Token WHERE  TokenValue=?");
-        sql.setString(1,token);
+        sql.setString(1, token);
         ResultSet id = sql.executeQuery();
         sql.close();
 
@@ -116,6 +116,7 @@ public class UserDAO {
         ResultSet result = sql.executeQuery();
         sql.close();
 
+        result.next();
         return Integer.parseInt(result.getString("nbToken")) > 0;
     }
 

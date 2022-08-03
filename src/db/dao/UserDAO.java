@@ -42,7 +42,7 @@ public class UserDAO {
     }
     //This function return login and password's user
     public String getUserPassword(String login) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("Select Password from Users WHERE  Login=?");
+        PreparedStatement sql = getConnection().prepareStatement("Select Password from User WHERE  Login=?");
         sql.setString(1,login);
         ResultSet infos = sql.executeQuery();
         sql.close();

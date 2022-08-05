@@ -22,7 +22,6 @@ public class UserDAO {
         PreparedStatement sql = getConnection().prepareStatement("Select tokenValue from Token WHERE  IdUser=?");
         sql.setInt(1, id);
         ResultSet token = sql.executeQuery();
-        sql.close();
 
         if(token.next())
             return token.getString("TokenValue");
@@ -34,7 +33,6 @@ public class UserDAO {
         PreparedStatement sql = getConnection().prepareStatement("Select IdUser from Token WHERE  TokenValue=?");
         sql.setString(1, token);
         ResultSet id = sql.executeQuery();
-        sql.close();
 
         if(id.next())
             return id.getInt("IdUser");
@@ -45,7 +43,6 @@ public class UserDAO {
         PreparedStatement sql = getConnection().prepareStatement("Select Password from User WHERE  Login=?");
         sql.setString(1,login);
         ResultSet infos = sql.executeQuery();
-        sql.close();
 
         if(infos.next())
             return infos.getString("password");
@@ -114,7 +111,6 @@ public class UserDAO {
     public Boolean verifyToken(String token) throws SQLException {
         PreparedStatement sql = getConnection().prepareStatement("SELECT count(*) as nbToken FROM Token");
         ResultSet result = sql.executeQuery();
-        sql.close();
 
         result.next();
         return Integer.parseInt(result.getString("nbToken")) > 0;

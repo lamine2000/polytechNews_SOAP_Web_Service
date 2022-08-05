@@ -19,7 +19,7 @@ public class UserDAO {
 
     //this function return admin's token basing on his id
     public String getToken(int id) throws SQLException{
-        PreparedStatement sql = getConnection().prepareStatement("Select tokenValue from Token WHERE  IdUser=?");
+        PreparedStatement sql = getConnection().prepareStatement("Select tokenValue from Token WHERE  userId=?");
         sql.setInt(1, id);
         ResultSet token = sql.executeQuery();
 
@@ -30,7 +30,7 @@ public class UserDAO {
 
     //this function return admin's token basing on his id
     public int getId(String token) throws SQLException{
-        PreparedStatement sql = getConnection().prepareStatement("Select IdUser from Token WHERE  TokenValue=?");
+        PreparedStatement sql = getConnection().prepareStatement("Select userId from Token WHERE tokenValue=?");
         sql.setString(1, token);
         ResultSet id = sql.executeQuery();
 
@@ -40,8 +40,8 @@ public class UserDAO {
     }
     //This function return login and password's user
     public String getUserPassword(String login) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("Select Password from User WHERE  Login=?");
-        sql.setString(1,login);
+        PreparedStatement sql = getConnection().prepareStatement("Select password from User WHERE login=?");
+        sql.setString(1, login);
         ResultSet infos = sql.executeQuery();
 
         if(infos.next())
@@ -62,7 +62,7 @@ public class UserDAO {
             String login = userList.getString("login");
             String pwd = userList.getString("password");
             String type = userList.getString("type");
-            switch (UserTypesEnum.valueOf(type)) {
+            switch (UserTypesEnum.valueOf(type.toUpperCase())) {
                 case ADMINISTRATOR:
                     admin.setLogin(login);
                     admin.setPassword(pwd);
@@ -81,7 +81,7 @@ public class UserDAO {
 
     //this function add user in the database
     public void addUser(User newUser, String type) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("INSERT INTO User(Login,Password,Type) VALUES (?,?,?)");
+        PreparedStatement sql = getConnection().prepareStatement("INSERT INTO User(login, password, type) VALUES (?,?,?)");
         sql.setString(1,newUser.getLogin());
         sql.setString(2,newUser.getPassword());
         sql.setString(3,type);
@@ -91,7 +91,7 @@ public class UserDAO {
 
     //update function depending on user's id
     public void updateUser(User user, String type, int id) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("UPDATE User SET Login=?, Password=?, Type=? WHERE Id=? ");
+        PreparedStatement sql = getConnection().prepareStatement("UPDATE User SET login=?, password=?, type=? WHERE id=? ");
         sql.setString(1,user.getLogin());
         sql.setString(2,user.getPassword());
         sql.setString(3,type);
@@ -102,18 +102,19 @@ public class UserDAO {
 
     //delete function depending on user's login
     public void deleteUser(int id) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("DELETE FROM User WHERE Id=?");
+        PreparedStatement sql = getConnection().prepareStatement("DELETE FROM User WHERE id=?");
         sql.setInt(1, id);
         sql.executeUpdate();
         sql.close();
     }
 
     public Boolean verifyToken(String token) throws SQLException {
-        PreparedStatement sql = getConnection().prepareStatement("SELECT count(*) as nbToken FROM Token");
+        PreparedStatement sql = getConnection().prepareStatement("SELECT count(*) as nbToken FROM Token where tokenValue = ?");
+        sql.setString(1, token);
         ResultSet result = sql.executeQuery();
 
         result.next();
-        return Integer.parseInt(result.getString("nbToken")) > 0;
+        return result.getInt("nbToken") > 0;
     }
 
 }
